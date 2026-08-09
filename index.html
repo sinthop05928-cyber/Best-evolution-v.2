@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no">
+
+<title>Beast Evolution World</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    touch-action:none;
+    font-family:Arial,sans-serif;
+    background:#17212b;
+}
+
+canvas{
+    width:100%;
+    height:100%;
+    display:block;
+}
+
+/* =========================
+   HUD
+========================= */
+
+#hud{
+    position:fixed;
+    top:10px;
+    left:10px;
+    right:10px;
+
+    display:none;
+    justify-content:space-between;
+    gap:6px;
+
+    color:white;
+    font-weight:bold;
+
+    pointer-events:none;
+}
+
+.tag{
+    background:#101827dd;
+    padding:8px 11px;
+    border-radius:13px;
+    border:1px solid #ffffff22;
+}
+
+/* =========================
+   MENU
+========================= */
+
+#menu{
+    position:fixed;
+    inset:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#07101ddd;
+}
+
+.panel{
+    width:92%;
+    max-width:580px;
+    max-height:94%;
+
+    overflow:auto;
+
+    background:#18243a;
+    color:white;
+
+    border-radius:24px;
+    padding:20px;
+
+    box-shadow:
+        0 20px 70px #0009;
+}
+
+h1{
+    text-align:center;
+    margin:0 0 5px;
+}
+
+.sub{
+    text-align:center;
+    color:#cbd5e1;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+}
+
+.race{
+    border:0;
+    border-radius:15px;
+    padding:13px;
+
+    color:white;
+    font-weight:bold;
+    font-size:15px;
+
+    min-height:82px;
+}
+
+.race span{
+    display:block;
+    font-size:30px;
+}
+
+.race.selected{
+    outline:4px solid #facc15;
+}
+
+#animals{
+    margin-top:12px;
+
+    background:#0d1727;
+
+    padding:12px;
+
+    border-radius:15px;
+}
+
+.row{
+    display:flex;
+    gap:7px;
+
+    overflow-x:auto;
+
+    padding-top:8px;
+}
+
+.animal{
+    min-width:88px;
+
+    background:#ffffff12;
+
+    border:1px solid #ffffff22;
+
+    border-radius:12px;
+
+    padding:8px;
+
+    text-align:center;
+}
+
+.animal b{
+    display:block;
+    font-size:27px;
+}
+
+#start{
+    width:100%;
+
+    border:0;
+    border-radius:15px;
+
+    padding:15px;
+    margin-top:12px;
+
+    background:#22c55e;
+    color:white;
+
+    font-size:18px;
+    font-weight:bold;
+}
+
+/* =========================
+   MOBILE CONTROLS
+========================= */
+
+#joy{
+    position:fixed;
+
+    left:18px;
+    bottom:22px;
+
+    width:132px;
+    height:132px;
+
+    border-radius:50%;
+
+    background:#ffffff20;
+
+    border:2px solid #ffffff45;
+
+    display:none;
+}
+
+#stick{
+    position:absolute;
+
+    left:38px;
+    top:38px;
+
+    width:54px;
+    height:54px;
+
+    border-radius:50%;
+
+    background:#ffffff88;
+}
+
+#jump,
+#skill{
+    position:fixed;
+
+    border:0;
+    border-radius:50%;
+
+    color:white;
+    font-weight:bold;
+
+    display:none;
+}
+
+#jump{
+    right:20px;
+    bottom:28px;
+
+    width:92px;
+    height:92px;
+
+    background:#ffad00;
+}
+
+#skill{
+    right:32px;
+    bottom:135px;
+
+    width:72px;
+    height:72px;
+
+    background:#8b5cf6;
+}
+
+#msg{
+    position:fixed;
+
+    top:72px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#101827e8;
+
+    color:white;
+
+    padding:9px 13px;
+
+    border-radius:13px;
+
+    display:none;
+
+    white-space:nowrap;
+}
+
+/* =========================
+   XP BAR
+========================= */
+
+#xpBox{
+    position:fixed;
+
+    top:53px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    width:180px;
+
+    height:12px;
+
+    background:#0008;
+
+    border-radius:20px;
+
+    display:none;
+}
+
+#xpBar{
+    height:100%;
+    width:0%;
+
+    background:#facc15;
+
+    border-radius:20px;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+
+<div id="hud">
+
+    <span class="tag" id="animal">
+        🐈 แมวป่า
+    </span>
+
+    <span class="tag" id="biome">
+        🌳 ป่าดิบ
+    </span>
+
+    <span class="tag">
+        ⭐ XP <b id="xp">0</b>
+    </span>
+
+</div>
+
+<div id="xpBox">
+    <div id="xpBar"></div>
+</div>
+
+<div id="msg"></div>
+
+<!-- MOBILE -->
+
+<div id="joy">
+    <div id="stick"></div>
+</div>
+
+<button id="jump">
+    กระโดด<br>⬆
+</button>
+
+<button id="skill">
+    ✨
+</button>
+
+<!-- MENU -->
+
+<div id="menu">
+
+<div class="panel">
+
+<h1>
+🧬 Beast Evolution World
+</h1>
+
+<p class="sub">
+เลือกเผ่าพันธุ์ก่อนเริ่มเกม
+</p>
+
+<div
+    class="grid"
+    id="races">
+</div>
+
+<div id="animals"></div>
+
+<button id="start">
+▶ เริ่มเล่น
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* =====================================================
+   CANVAS
+===================================================== */
+
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
+
+let W,H,D;
+
+function resize(){
+
+    D=Math.min(
+        window.devicePixelRatio || 1,
+        2
+    );
+
+    W=innerWidth;
+    H=innerHeight;
+
+    canvas.width=W*D;
+    canvas.height=H*D;
+
+    canvas.style.width=W+"px";
+    canvas.style.height=H+"px";
+
+    ctx.setTransform(
+        D,0,0,D,0,0
+    );
+}
+
+resize();
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+
+/* =====================================================
+   เผ่าพันธุ์
+===================================================== */
+
+const RACES={
+
+mammal:{
+
+    icon:"🐾",
+
+    name:"สัตว์เลี้ยงลูกด้วยนม",
+
+    biome:"forest",
+
+    animals:[
+
+        ["🕷️","แมงมุม"],
+
+        ["🐱","แมว"],
+
+        ["🐶","หมา"],
+
+        ["🐷","หมู"],
+
+        ["🐻","หมี"],
+
+        ["🦁","สิงโต"],
+
+        ["🦇","ค้างคาวมีขา"]
+
+    ]
+
+},
+
+aquatic:{
+
+    icon:"🌊",
+
+    name:"สัตว์น้ำ",
+
+    biome:"ocean",
+
+    animals:[
+
+        ["🐟","ปลา"],
+
+        ["🗡️","ปลาดาบ"],
+
+        ["🐟","ปลาปิรันยา"],
+
+        ["🦈","ฉลาม"],
+
+        ["🐙","ปลาหมึกยักษ์"]
+
+    ]
+
+},
+
+reptile:{
+
+    icon:"🦂",
+
+    name:"สัตว์เลื้อยคลาน",
+
+    biome:"swamp",
+
+    animals:[
+
+        ["🐍","งูเล็ก"],
+
+        ["🐛","ตะขาบ"],
+
+        ["🦂","แมงป่อง"],
+
+        ["🐊","อัลลิเกเตอร์"],
+
+        ["🐊","จระเข้"],
+
+        ["🦂","แมงป่องยักษ์"]
+
+    ]
+
+},
+
+arctic:{
+
+    icon:"❄️",
+
+    name:"ขั้วโลก",
+
+    biome:"arctic",
+
+    animals:[
+
+        ["🐧","เพนกวิน"],
+
+        ["🦭","แมวน้ำ"],
+
+        ["🐋","พะยูน"],
+
+        ["🐻‍❄️","หมีขั้วโลก"],
+
+        ["👹","เยติ"]
+
+    ]
+
+},
+
+wild:{
+
+    icon:"🌳",
+
+    name:"สัตว์ป่า",
+
+    biome:"forest",
+
+    animals:[
+
+        ["🐈","แมวป่า"],
+
+        ["🐺","หมาป่า"],
+
+        ["🐗","หมูป่า"],
+
+        ["🦛","ฮิปโป"],
+
+        ["🐀🦏","แรตมีเขา"],
+
+        ["🐯","เสือ"]
+
+    ]
+
+}
+
+};
+
+
+/* =====================================================
+   BIOMES
+===================================================== */
+
+const BIOMES={
+
+forest:{
+
+    name:"🌳 ป่าดิบ",
+
+    sky:"#4c963e",
+
+    ground:"#69b64d",
+
+    decoration:"#245d2a"
+
+},
+
+ocean:{
+
+    name:"🌊 มหาสมุทร",
+
+    sky:"#1887ae",
+
+    ground:"#42b5d9",
+
+    decoration:"#0d6282"
+
+},
+
+swamp:{
+
+    name:"🐊 หนองน้ำ",
+
+    sky:"#345d48",
+
+    ground:"#587c4c",
+
+    decoration:"#274633"
+
+},
+
+arctic:{
+
+    name:"❄️ ขั้วโลก",
+
+    sky:"#9ed0e6",
+
+    ground:"#e1f7ff",
+
+    decoration:"#709bad"
+
+}
+
+};
+
+
+/* =====================================================
+   SKILLS
+===================================================== */
+
+const SKILLS={
+
+"แมว":[
+    "⚡ วิ่งเร็ว"
+],
+
+"หมา":[
+    "👃 ดมอาหาร"
+],
+
+"หมู":[
+    "💪 พุ่งชน"
+],
+
+"หมี":[
+    "🛡️ เกราะหนา"
+],
+
+"สิงโต":[
+    "🦁 คำราม"
+],
+
+"ค้างคาวมีขา":[
+    "🌙 บินพุ่ง",
+    "🦇 คลื่นเสียง"
+],
+
+"ปลาดาบ":[
+    "🗡️ พุ่งแทง"
+],
+
+"ปลาปิรันยา":[
+    "🩸 กัดเร็ว"
+],
+
+"ฉลาม":[
+    "🦈 ตรวจจับสิ่งมีชีวิต"
+],
+
+"ปลาหมึกยักษ์":[
+    "🖤 หมึกดำ",
+    "🐙 หนวดรัด"
+],
+
+"ตะขาบ":[
+    "🦵 วิ่งเร็ว"
+],
+
+"แมงป่อง":[
+    "☠️ พิษ"
+],
+
+"อัลลิเกเตอร์":[
+    "🦷 กัดแรง"
+],
+
+"จระเข้":[
+    "💥 พุ่งงับ"
+],
+
+"แมงป่องยักษ์":[
+    "☠️ พิษยักษ์",
+    "🦂 หางเหล็ก"
+],
+
+"แมวน้ำ":[
+    "🌊 ดำน้ำเร็ว"
+],
+
+"พะยูน":[
+    "💚 ฟื้นพลัง"
+],
+
+"หมีขั้วโลก":[
+    "❄️ ต้านความหนาว"
+],
+
+"เยติ":[
+    "❄️ แช่แข็ง",
+    "💪 พลังเยติ"
+],
+
+"หมาป่า":[
+    "🐺 วิ่งเร็ว"
+],
+
+"หมูป่า":[
+    "🐗 พุ่งชน"
+],
+
+"ฮิปโป":[
+    "💥 กระแทกพื้น"
+],
+
+"แรตมีเขา":[
+    "🦏 พุ่งเขา"
+],
+
+"เสือ":[
+    "⚡ กระโจน",
+    "🐯 พรางตัว"
+]
+
+};
+
+
+/* =====================================================
+   GAME STATE
+===================================================== */
+
+let selectedRace="wild";
+
+let stage=0;
+
+let xp=0;
+
+let playing=false;
+
+let playerX=0;
+
+let playerZ=0;
+
+let cameraX=0;
+
+let cameraZ=0;
+
+let moveX=0;
+
+let moveZ=0;
+
+let jumping=false;
+
+let jumpY=0;
+
+let jumpVelocity=0;
+
+
+/* =====================================================
+   อาหาร
+===================================================== */
+
+const foods=[];
+
+for(
+    let i=0;
+    i<55;
+    i++
+){
+
+    foods.push({
+
+        x:(i*173)%1600-800,
+
+        z:(i*239)%1200-600,
+
+        type:i%3
+
+    });
+
+}
+
+
+/* =====================================================
+   เมนู
+===================================================== */
+
+const raceButtons=[];
+
+const raceColors=[
+
+    "#7146b7",
+
+    "#087da5",
+
+    "#a45b20",
+
+    "#397da4",
+
+    "#248343"
+
+];
+
+Object.keys(RACES)
+.forEach(
+    (key,index)=>{
+
+        const race=RACES[key];
+
+        const button=
+            document.createElement(
+                "button"
+            );
+
+        button.className="race";
+
+        button.style.background=
+            raceColors[index];
+
+        button.innerHTML=
+            "<span>"+
+            race.icon+
+            "</span>"+
+            race.name;
+
+        button.onclick=()=>{
+
+            selectRace(key);
+
+        };
+
+        document
+            .getElementById("races")
+            .appendChild(button);
+
+        raceButtons.push(
+            [key,button]
+        );
+
+    }
+);
+
+
+/* =====================================================
+   เลือกเผ่า
+===================================================== */
+
+function selectRace(key){
+
+    selectedRace=key;
+
+    stage=0;
+
+    xp=0;
+
+    raceButtons.forEach(
+        item=>{
+
+            item[1]
+            .classList.toggle(
+                "selected",
+                item[0]===key
+            );
+
+        }
+    );
+
+    const animals=
+        RACES[key].animals;
+
+    document
+        .getElementById("animals")
+        .innerHTML=
+        "<b>สายวิวัฒนาการ</b>"+
+        "<div class='row'>"+
+        animals.map(
+            (animal,index)=>{
+
+                let type;
+
+                if(index===0){
+
+                    type="เริ่มต้น";
+
+                }else if(
+                    index===
+                    animals.length-1
+                ){
+
+                    type="🏆 2 สกิล";
+
+                }else{
+
+                    type="✨ 1 สกิล";
+
+                }
+
+                return `
+                <div class="animal">
+                    <b>${animal[0]}</b>
+                    ${animal[1]}
+                    <br>
+                    <small>${type}</small>
+                </div>
+                `;
+
+            }
+        ).join("")+
+        "</div>";
+
+}
+
+
+/* =====================================================
+   HUD
+===================================================== */
+
+function updateHUD(){
+
+    const race=
+        RACES[selectedRace];
+
+    const animal=
+        race.animals[stage];
+
+    const biome=
+        BIOMES[race.biome];
+
+    document
+        .getElementById("animal")
+        .textContent=
+        animal[0]+" "+animal[1];
+
+    document
+        .getElementById("biome")
+        .textContent=
+        biome.name;
+
+    document
+        .getElementById("xp")
+        .textContent=
+        xp;
+
+    const required=
+        getRequiredXP();
+
+    const percentage=
+        Math.min(
+            xp/required*100,
+            100
+        );
+
+    document
+        .getElementById("xpBar")
+        .style.width=
+        percentage+"%";
+
+}
+
+
+/* =====================================================
+   XP
+===================================================== */
+
+function getRequiredXP(){
+
+    return 20+
+        stage*15;
+
+}
+
+
+function addXP(amount){
+
+    xp+=amount;
+
+    showMessage(
+        "+"+amount+" XP"
+    );
+
+    while(
+
+        stage<
+        RACES[selectedRace]
+        .animals.length-1
+
+        &&
+
+        xp>=getRequiredXP()
+
+    ){
+
+        xp-=getRequiredXP();
+
+        stage++;
+
+        const animal=
+            RACES[selectedRace]
+            .animals[stage];
+
+        showMessage(
+            "🧬 วิวัฒนาการเป็น "+
+            animal[1]+"!"
+        );
+
+    }
+
+    updateHUD();
+
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+function showMessage(text){
+
+    const message=
+        document.getElementById(
+            "msg"
+        );
+
+    message.textContent=text;
+
+    message.style.display=
+        "block";
+
+    clearTimeout(
+        showMessage.timer
+    );
+
+    showMessage.timer=
+        setTimeout(
+            ()=>{
+
+                message.style.display=
+                    "none";
+
+            },
+            1800
+        );
+
+}
+
+
+/* =====================================================
+   DRAW WORLD
+===================================================== */
+
+function drawWorld(){
+
+    const biome=
+        BIOMES[
+            RACES[selectedRace]
+            .biome
+        ];
+
+    /* SKY */
+
+    ctx.fillStyle=
+        biome.sky;
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    /* GROUND */
+
+    ctx.fillStyle=
+        biome.ground;
+
+    ctx.fillRect(
+        0,
+        H*0.47,
+        W,
+        H
+    );
+
+
+    /* DECORATIONS */
+
+    for(
+        let i=-1200;
+        i<1300;
+        i+=150
+    ){
+
+        const z=
+            (i*7)%800-350;
+
+        const sx=
+            W/2+
+            (i-cameraX)*1.08;
+
+        const sy=
+            H*0.49+
+            (z-cameraZ)*0.28;
+
+        ctx.fillStyle=
+            biome.decoration;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            sx,
+            sy-35,
+            30,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.fillRect(
+            sx-7,
+            sy-8,
+            14,
+            42
+        );
+
+    }
+
+
+    /* FOOD */
+
+    foods.forEach(
+        food=>{
+
+            const sx=
+                W/2+
+                (food.x-cameraX)
+                *1.08;
+
+            const sy=
+                H*0.49+
+                (food.z-cameraZ)
+                *0.28;
+
+            if(
+                sx>-40 &&
+                sx<W+40 &&
+                sy>-40 &&
+                sy<H+40
+            ){
+
+                ctx.font=
+                    "25px sans-serif";
+
+                if(food.type===0){
+
+                    ctx.fillText(
+                        "🌱",
+                        sx,
+                        sy
+                    );
+
+                }else if(
+                    food.type===1
+                ){
+
+                    ctx.fillText(
+                        "🍎",
+                        sx,
+                        sy
+                    );
+
+                }else{
+
+                    ctx.fillText(
+                        "🥩",
+                        sx,
+                        sy
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /* PLAYER */
+
+    const animal=
+        RACES[selectedRace]
+        .animals[stage];
+
+    const sx=
+        W/2+
+        (playerX-cameraX)
+        *1.08;
+
+    const sy=
+        H*0.49+
+        (playerZ-cameraZ)
+        *0.28-
+        jumpY;
+
+
+    /* SHADOW */
+
+    ctx.fillStyle="#0005";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        sx,
+        sy+30,
+        30,
+        8,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* MODEL */
+
+    ctx.font=
+        "64px sans-serif";
+
+    ctx.textAlign=
+        "center";
+
+    ctx.fillText(
+        animal[0],
+        sx,
+        sy+18
+    );
+
+    ctx.textAlign=
+        "start";
+
+}
+
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+function gameLoop(){
+
+    if(playing){
+
+        playerX+=
+            moveX*3;
+
+        playerZ+=
+            moveZ*3;
+
+
+        cameraX+=
+            (playerX-cameraX)
+            *0.08;
+
+        cameraZ+=
+            (playerZ-cameraZ)
+            *0.08;
+
+
+        /* JUMP */
+
+        if(jumping){
+
+            jumpY+=
+                jumpVelocity;
+
+            jumpVelocity-=0.65;
+
+            if(
+                jumpY<=0
+            ){
+
+                jumpY=0;
+
+                jumpVelocity=0;
+
+                jumping=false;
+
+            }
+
+        }
+
+
+        /* FOOD */
+
+        foods.forEach(
+            (food,index)=>{
+
+                const distance=
+                    Math.hypot(
+                        food.x-playerX,
+                        food.z-playerZ
+                    );
+
+                if(
+                    distance<35
+                ){
+
+                    let amount;
+
+                    if(
+                        food.type===0
+                    ){
+
+                        amount=1;
+
+                    }else if(
+                        food.type===1
+                    ){
+
+                        amount=5;
+
+                    }else{
+
+                        amount=10;
+
+                    }
+
+                    addXP(amount);
+
+
+                    /*
+                     * Respawn food
+                     */
+
+                    food.x=
+                        (index*311)
+                        %1500-750;
+
+                    food.z=
+                        (index*179)
+                        %1100-550;
+
+                }
+
+            }
+        );
+
+    }
+
+
+    drawWorld();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+gameLoop();
+
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+document
+.getElementById("start")
+.onclick=()=>{
+
+    playing=true;
+
+    document
+        .getElementById("menu")
+        .style.display=
+        "none";
+
+    document
+        .getElementById("hud")
+        .style.display=
+        "flex";
+
+    document
+        .getElementById("xpBox")
+        .style.display=
+        "block";
+
+    document
+        .getElementById("joy")
+        .style.display=
+        "block";
+
+    document
+        .getElementById("jump")
+        .style.display=
+        "block";
+
+    updateHUD();
+
+    showMessage(
+        "🌱 +1 XP   🍎 +5 XP   🥩 +10 XP"
+    );
+
+};
+
+
+/* =====================================================
+   JUMP
+===================================================== */
+
+document
+.getElementById("jump")
+.onclick=()=>{
+
+    if(!jumping){
+
+        jumping=true;
+
+        jumpVelocity=10;
+
+    }
+
+};
+
+
+/* =====================================================
+   SKILL
+===================================================== */
+
+document
+.getElementById("skill")
+.onclick=()=>{
+
+    const animal=
+        RACES[selectedRace]
+        .animals[stage][1];
+
+    const skills=
+        SKILLS[animal] || [];
+
+    if(skills.length){
+
+        showMessage(
+            skills.join("   |   ")
+        );
+
+    }
+
+};
+
+
+/* =====================================================
+   JOYSTICK
+===================================================== */
+
+const joystick=
+    document.getElementById(
+        "joy"
+    );
+
+const stick=
+    document.getElementById(
+        "stick"
+    );
+
+let dragging=false;
+
+
+function moveJoystick(event){
+
+    if(!dragging)
+        return;
+
+
+    const rect=
+        joystick.getBoundingClientRect();
+
+
+    let x=
+        event.clientX-
+        (
+            rect.left+
+            rect.width/2
+        );
+
+
+    let y=
+        event.clientY-
+        (
+            rect.top+
+            rect.height/2
+        );
+
+
+    const distance=
+        Math.hypot(x,y);
+
+    const max=
+        45;
+
+
+    if(
+        distance>max
+    ){
+
+        x=
+            x/distance*
+            max;
+
+        y=
+            y/distance*
+            max;
+
+    }
+
+
+    stick.style.transform=
+        `translate(${x}px,${y}px)`;
+
+
+    moveX=
+        x/max;
+
+    moveZ=
+        y/max;
+
+}
+
+
+joystick
+.addEventListener(
+    "pointerdown",
+    event=>{
+
+        dragging=true;
+
+        joystick.setPointerCapture(
+            event.pointerId
+        );
+
+        moveJoystick(event);
+
+    }
+);
+
+
+joystick
+.addEventListener(
+    "pointermove",
+    moveJoystick
+);
+
+
+joystick
+.addEventListener(
+    "pointerup",
+    ()=>{
+
+        dragging=false;
+
+        moveX=0;
+
+        moveZ=0;
+
+        stick.style.transform=
+            "translate(0,0)";
+
+    }
+);
+
+
+/* =====================================================
+   KEYBOARD SUPPORT
+   เผื่อเล่นบนคอม
+===================================================== */
+
+window.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            event.key==="ArrowLeft" ||
+            event.key==="a"
+        ){
+
+            moveX=-1;
+
+        }
+
+        if(
+            event.key==="ArrowRight" ||
+            event.key==="d"
+        ){
+
+            moveX=1;
+
+        }
+
+        if(
+            event.key==="ArrowUp" ||
+            event.key==="w"
+        ){
+
+            moveZ=-1;
+
+        }
+
+        if(
+            event.key==="ArrowDown" ||
+            event.key==="s"
+        ){
+
+            moveZ=1;
+
+        }
+
+        if(
+            event.code==="Space"
+        ){
+
+            if(!jumping){
+
+                jumping=true;
+
+                jumpVelocity=10;
+
+            }
+
+        }
+
+    }
+);
+
+
+window.addEventListener(
+    "keyup",
+    event=>{
+
+        if(
+            [
+                "ArrowLeft",
+                "ArrowRight",
+                "a",
+                "d"
+            ].includes(
+                event.key
+            )
+        ){
+
+            moveX=0;
+
+        }
+
+        if(
+            [
+                "ArrowUp",
+                "ArrowDown",
+                "w",
+                "s"
+            ].includes(
+                event.key
+            )
+        ){
+
+            moveZ=0;
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   INITIAL MENU
+===================================================== */
+
+selectRace(
+    "wild"
+);
+
+</script>
+
+</body>
+</html>
