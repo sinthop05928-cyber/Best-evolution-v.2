@@ -4,8 +4,8 @@
 local Players = game:GetService("Players")
 
 -- ตั้งค่าพื้นที่เกิดอาหาร
-local MAP_CENTER = Vector3.new(0, 2, 0)
-local MAP_SIZE = Vector3.new(300, 0, 300)
+local MAP_CENTER = Vector3.new(5)
+local MAP_SIZE = Vector3.new(500)
 
 -- อาหารและ EXP
 local Foods = {
